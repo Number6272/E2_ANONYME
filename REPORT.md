@@ -111,3 +111,15 @@ restauré en 4 s
 (1 row)
 
 ```
+
+## 4. RPO, RTO et rétention
+
+| | Valeur | Pourquoi |
+|---|---|---|
+| **RPO** (perte de données maximale) | **24 h** | Une sauvegarde par nuit, par exemple avec la ligne cron `0 3 * * * cd /chemin/studio-riff && ./backup.sh`. Au pire, on perd les réservations d'une journée : les groupes peuvent les refaire, et aucun paiement n'est en jeu. |
+| **RTO** (durée maximale de panne) | **2 h** | La restauration prend quelques secondes (mesure ci-dessus). Le délai vient surtout du temps qu'il faut à un bénévole pour voir la panne et lancer `./restore.sh`. |
+| **Rétention** | **30 jours** | `backup.sh` supprime les sauvegardes de plus de 30 jours. Une sauvegarde pèse moins d'1 Mo, donc 30 fichiers ne coûtent rien, et on peut revenir avant une erreur remarquée tard. |
+
+Les sauvegardes doivent aussi être copiées hors de la machine (clé USB, disque partagé de l'association), sinon une panne du disque les perdrait avec la base.
+
+**Pourquoi pas les valeurs d'une banque ?** Une banque vise un RPO proche de zéro (réplication continue), un RTO de quelques minutes (serveur de secours) et une rétention de plusieurs années (obligations légales). Pour une association de 4 salles, ce serait cher et compliqué pour un gain très faible.
