@@ -6,7 +6,8 @@
   "scripts": {
     "migrate": "tsx --env-file=.env src/scripts/migrate.ts",
     "seed": "tsx --env-file=.env src/scripts/seed.ts",
-    "dev": "tsx --env-file=.env src/server.ts"
+    "dev": "tsx --env-file=.env src/server.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "fastify": "^5.12.8",
@@ -16,7 +17,8 @@
     "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   },
   "allowScripts": {
     "esbuild@0.28.2": true
