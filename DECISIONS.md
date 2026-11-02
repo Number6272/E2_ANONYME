@@ -20,7 +20,7 @@ routes.ts  →  service.ts  →  rules.ts (domaine, aucun import)
                repo.ts (PostgreSQL)  ·  cache.ts (Valkey)
 ```
 
-Le domaine ne dépend de rien. Le container du cours relie les couches.
+Le domaine ne dépend de rien. `server.ts` relie les couches : il crée le pool PostgreSQL et l'horloge, puis les passe au service en paramètres.
 
 ## 3. Modèle relationnel
 

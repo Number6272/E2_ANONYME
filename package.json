@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "migrate": "tsx --env-file=.env src/scripts/migrate.ts",
-    "seed": "tsx --env-file=.env src/scripts/seed.ts"
+    "seed": "tsx --env-file=.env src/scripts/seed.ts",
+    "dev": "tsx --env-file=.env src/server.ts"
   },
   "dependencies": {
+    "fastify": "^5.12.8",
     "pg": "^8.23.1"
   },
   "devDependencies": {
