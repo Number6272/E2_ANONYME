@@ -49,3 +49,25 @@ Données : 100 000 réservations générées par `db/perf/generate.sql`, plus le
 - **Après :** `Bitmap Index Scan on bookings_room_start`. L'index permet de lire seulement les lignes de `room-1` qui commencent avant la fin de la semaine (environ 5 600). Le filtre sur `end_at` et `status` n'en jette plus que 5 526.
 - **Ordre des colonnes :** `room_id` est comparé par égalité, donc en premier. `start_at` est comparé par plage, donc en second.
 - **Conclusion :** le temps reste de l'ordre de la milliseconde, car la table est petite. Ce qui compte, c'est l'écart entre les plans : sans index, le coût grandit avec toute la table ; avec l'index, il dépend seulement des réservations de la salle.
+
+## 2. Cache Valkey
+
+### Clés et durée de vie
+
+- **Ce qui est mis en cache :** la réponse de `GET /rooms/:id/bookings`, c'est-à-dire le planning d'une salle sur une période. C'est la ressource la plus consultée.
+- **Clé :** `planning:{roomId}:{from}:{to}`, par exemple `planning:room-1:2026-11-02T00:00:00.000Z:2026-11-09T00:00:00.000Z`. Une clé par salle et par période demandée.
+- **Valeur :** la liste JSON des réservations confirmées.
+- **Durée de vie (TTL) : 300 secondes.** Ce n'est qu'un filet de sécurité : la fraîcheur vient de l'invalidation, pas de l'expiration.
+- **Invalidation :** après chaque réservation ou annulation réussie, toutes les clés `planning:{roomId}:*` de la salle sont supprimées. Le GET suivant relit PostgreSQL, donc le planning est à jour immédiatement. `KEYS` suffit ici : il y a au plus quelques dizaines de clés.
+- **Valkey arrêté :** le client échoue tout de suite (`enableOfflineQueue: false`, `maxRetriesPerRequest: 0`) et chaque appel au cache est dans un `try/catch`. L'API lit alors directement PostgreSQL (preuve ci-dessous : code 200 avec Valkey arrêté).
+
+### Vérification
+
+```
+$ valkey-cli KEYS *
+planning:room-1:2026-11-02T00:00:00.000Z:2026-11-09T00:00:00.000Z
+$ valkey-cli TTL planning:room-1:2026-11-02T00:00:00.000Z:2026-11-09T00:00:00.000Z
+300
+$ docker compose stop valkey, puis curl du planning
+code HTTP 200
+```
