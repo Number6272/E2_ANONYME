@@ -40,3 +40,6 @@ Contrôler en code (SELECT puis INSERT) laisse passer deux requêtes simultanée
 
 **ADR-002 : pas de trigger pour la limite de 2 réservations.**
 Un trigger utiliserait `now()` : impossible à tester avec une horloge fixe, et la règle serait cachée dans la base. On la garde dans le domaine, et on verrouille le membre (`FOR UPDATE`) pendant la réservation.
+
+**ADR-003 : driver `pg` avec du SQL écrit à la main, sans ORM.**
+Le schéma est petit (3 tables) et le sujet demande du SQL précis : contrainte d'exclusion, `FOR UPDATE`, `EXPLAIN ANALYZE`. Un ORM cacherait ce SQL et ajouterait une couche à apprendre. Avec `pg`, chaque requête est visible et facile à expliquer. En contrepartie, on écrit soi-même la conversion ligne SQL → objet JSON.
