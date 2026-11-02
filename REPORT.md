@@ -71,3 +71,22 @@ $ valkey-cli TTL planning:room-1:2026-11-02T00:00:00.000Z:2026-11-09T00:00:00.00
 $ docker compose stop valkey, puis curl du planning
 code HTTP 200
 ```
+
+### Quelles données dans Valkey, lesquelles dans PostgreSQL ?
+
+| Donnée | Où | Pourquoi |
+|---|---|---|
+| Salles, membres, réservations | PostgreSQL | C'est la source de vérité : contraintes (exclusion, clés étrangères, CHECK), transactions avec `FOR UPDATE`, données durables et sauvegardées. |
+| Planning d'une semaine (copie) | Valkey | Lu très souvent, recalculable à tout moment depuis PostgreSQL, peut être perdu sans dommage. |
+
+**Taille de l'association :** 4 salles, quelques dizaines de membres, quelques milliers de réservations par an. PostgreSQL répond déjà en 1 ms environ (voir la mesure de la partie 1). Le cache n'est donc pas indispensable. On le garde volontairement simple : une seule sorte de clé, un TTL court, et rien d'autre en cache.
+
+### Les réservations pourraient-elles être stockées dans Valkey ?
+
+Non :
+- Valkey n'a ni contrainte d'exclusion, ni clés étrangères. Il faudrait recoder à la main le refus des chevauchements et la limite de 2 réservations, et on retrouverait le problème du tableur écrasé.
+- Valkey ne sait pas faire de requêtes par plage de dates ni de jointures (planning, réservations d'un membre).
+- Valkey garde les données en mémoire : une panne peut faire perdre les dernières écritures, ce qui est inacceptable pour des réservations.
+- La sauvegarde et la restauration reposent sur `pg_dump`.
+
+Valkey reste un cache : si on le vide, aucune donnée n'est perdue.
