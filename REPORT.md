@@ -90,3 +90,24 @@ Non :
 - La sauvegarde et la restauration reposent sur `pg_dump`.
 
 Valkey reste un cache : si on le vide, aucune donnée n'est perdue.
+
+## 3. Sauvegarde et restauration
+
+`backup.sh` crée un fichier `pg_dump` daté dans `backups/`. `restore.sh` le restaure dans une **nouvelle** base `studio_riff_restore`, puis compare le nombre de réservations avec la base d'origine.
+
+```
+$ ./backup.sh
+sauvegarde : backups/studio_riff_2026-11-02_15-41-11.dump
+$ ./restore.sh
+restauré en 4 s
+ origine 
+---------
+  100004
+(1 row)
+
+ restauree 
+-----------
+    100004
+(1 row)
+
+```
